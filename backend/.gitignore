@@ -2,6 +2,7 @@
 /dist
 /node_modules
 /build
+/DB_DATA
 
 # Logs
 logs
