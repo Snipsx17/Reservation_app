@@ -6,14 +6,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { databaseConfig } from './config/database.config';
 
 @Module({
-  imports: [ConfigModule.forRoot(configuration),
+  imports: [
+    ConfigModule.forRoot(configuration),
     TypeOrmModule.forRootAsync({
-      imports:  [ConfigModule],
+      imports: [ConfigModule],
       useFactory: databaseConfig,
-      inject: [ConfigService]
-    })
+      inject: [ConfigService],
+    }),
   ],
   controllers: [AppController],
   providers: [],
 })
-export class AppModule { }
+export class AppModule {}

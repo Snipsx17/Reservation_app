@@ -7,8 +7,10 @@ async function bootstrap() {
   app.setGlobalPrefix('api/v1');
 
   const PORT = app.get(ConfigService).get('PORT');
-  const ENV = app.get(ConfigService).get('ENV_NODE');
+  const ENV = app.get(ConfigService).get('NODE_ENV');
   await app.listen(PORT ?? 4000);
-  ENV === 'development' || console.log(`Server started at port: ${PORT}`)
+
+  if (ENV === 'development') console.log(`Server started at port: ${PORT}`);
 }
+
 bootstrap();
