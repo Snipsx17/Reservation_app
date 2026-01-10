@@ -4,6 +4,7 @@ import { AppController } from './app/app.controller';
 import configuration from './config/configuration';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { databaseConfig } from './config/database.config';
+import { LoggerModule } from './common/logger/logger.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { databaseConfig } from './config/database.config';
       useFactory: databaseConfig,
       inject: [ConfigService],
     }),
+    LoggerModule,
   ],
   controllers: [AppController],
   providers: [],
