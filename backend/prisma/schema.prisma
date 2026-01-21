@@ -1,0 +1,114 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model SuperAdmin {
+  id        Int      @id @default(autoincrement())
+  userId    String   @unique @default(uuid()) @db.Uuid
+  username  String   @unique @db.VarChar(50)
+  email     String   @unique @db.VarChar(50)
+  password  String   @db.VarChar(60)
+  telephone String   @db.VarChar(12)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  active    Boolean  @default(true)
+
+  @@map("super_admin")
+}
+
+model AdminUser {
+  id                Int          @id @default(autoincrement())
+  user_id           String       @unique @default(uuid()) @db.Uuid
+  username          String       @unique @db.VarChar(50)
+  email             String       @unique @db.VarChar(50)
+  verifiedEmail     Boolean      @default(false) @map("verified_email")
+  password          String       @db.VarChar(60)
+  telephone         String       @db.VarChar(12)
+  tokenVerificacion String?      @map("token_verificacion") @db.Uuid
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+  active            Boolean      @default(true)
+  restaurants       Restaurant[]
+
+  @@map("admin_user")
+}
+
+model Restaurant {
+  id              Int        @id @default(autoincrement())
+  restaurantId    String     @unique @default(uuid()) @map("restaurant_id") @db.Uuid
+  name            String     @db.VarChar(50)
+  logo            String?    @db.VarChar(256)
+  address         String     @db.VarChar(100)
+  adminId         Int        @map("admin_id")
+  admin           AdminUser  @relation(fields: [adminId], references: [id])
+  active          Boolean    @default(true)
+  maximumCapacity Int        @default(1) @map("maximum_capacity")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+  schedules       Schedule[]
+  reservations Reservation[]
+
+  @@map("restaurants")
+}
+
+model Schedule {
+  id                        Int        @id @default(autoincrement())
+  restaurantId              Int        @map("restaurant_id")
+  restaurant                Restaurant @relation(fields: [restaurantId], references: [id])
+  shiftName                 String     @map("shift_name") @db.VarChar(50)
+  weekDay                   Int        @map("week_day")
+  openingHour               DateTime   @map("opening_hour") @db.Time
+  closingHour               DateTime   @map("closing_hour") @db.Time
+  isActive                  Boolean    @default(true) @map("is_active")
+  reservationBlockMinutes   Int        @default(30) @map("reservation_block_minutes")
+  maxReservationsForBlock   Int        @default(1) @map("max_reservations_for_block")
+  minimumAdvanceBookingTime Int        @default(24) @map("minimum_advance_booking_time")
+  createdAt                 DateTime   @default(now()) @map("created_at")
+  updatedAt                 DateTime   @updatedAt @map("updated_at")
+  active                    Boolean    @default(true)
+
+  @@unique([restaurantId, weekDay, shiftName])
+  @@map("schedules")
+}
+
+model Reservation {
+  id                  Int              @id @default(autoincrement())
+  code                String           @unique @default(uuid()) @db.Uuid
+  restaurantId        Int              @map("restaurant_id")
+  restaurant          Restaurant       @relation(fields: [restaurantId], references: [id])
+  name                String           @db.VarChar(50)
+  email               String           @db.VarChar(50)
+  telephone           String           @db.VarChar(12)
+  numberOfDiners      Int              @default(2) @map("number_of_diners")
+  reservationDatetime DateTime         @map("reservation_datetime")
+  statusId            Int              @map("status_id")
+  status              ReservationStatus @relation(fields: [statusId], references: [id])
+  notes               String?          @db.VarChar(256)
+  intolerances        String?          @db.VarChar(256)
+  createdAt           DateTime         @default(now()) @map("created_at")
+  updatedAt           DateTime         @updatedAt @map("updated_at")
+  active              Boolean          @default(true)
+
+  @@map("reservations")
+}
+
+model ReservationStatus {
+  id           Int           @id @default(autoincrement())
+  status       String        @unique @db.VarChar(30)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  reservations Reservation[]
+  @@map("reservation_status")
+}
