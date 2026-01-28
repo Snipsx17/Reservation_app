@@ -19,4 +19,5 @@ export default {
     JWT_ACCESS_TOKEN_EXPIRATION: Joi.number().required(),
   }),
   isGlobal: true,
+  envFilePath: [`.env.${process.env.NODE_ENV}`, '.env'],
 };
