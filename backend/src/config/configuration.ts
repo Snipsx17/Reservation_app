@@ -17,7 +17,8 @@ export default {
     DATABASE_URL: Joi.string().required(),
     JWT_ACCESS_TOKEN_SECRET: Joi.string().required(),
     JWT_ACCESS_TOKEN_EXPIRATION: Joi.number().required(),
+    JWT_SALT_ROUNDS: Joi.number().required(),
   }),
   isGlobal: true,
-  envFilePath: [`.env.${process.env.NODE_ENV}`, '.env'],
+  envFilePath: ['.env.development', '.env'],
 };
