@@ -5,9 +5,9 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class UsersService {
   constructor(private dbService: PrismaService) {}
 
-  async findOne(email: string) {
+  async findOne(username: string) {
     const user = await this.dbService.superAdmin.findUnique({
-      where: { email },
+      where: { username },
     });
     return user;
   }
