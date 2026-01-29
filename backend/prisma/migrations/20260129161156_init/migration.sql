@@ -1,20 +1,8 @@
--- CreateTable
-CREATE TABLE "super_admin" (
-    "id" SERIAL NOT NULL,
-    "userId" UUID NOT NULL,
-    "username" VARCHAR(50) NOT NULL,
-    "email" VARCHAR(50) NOT NULL,
-    "password" VARCHAR(60) NOT NULL,
-    "telephone" VARCHAR(12) NOT NULL,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
-    "active" BOOLEAN NOT NULL DEFAULT true,
-
-    CONSTRAINT "super_admin_pkey" PRIMARY KEY ("id")
-);
+-- CreateEnum
+CREATE TYPE "UserRole" AS ENUM ('SUPER_ADMIN', 'ADMIN');
 
 -- CreateTable
-CREATE TABLE "admin_user" (
+CREATE TABLE "users" (
     "id" SERIAL NOT NULL,
     "user_id" UUID NOT NULL,
     "username" VARCHAR(50) NOT NULL,
@@ -23,11 +11,13 @@ CREATE TABLE "admin_user" (
     "password" VARCHAR(60) NOT NULL,
     "telephone" VARCHAR(12) NOT NULL,
     "token_verificacion" UUID,
+    "refreshToken" VARCHAR(100),
+    "role" "UserRole" NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "active" BOOLEAN NOT NULL DEFAULT true,
 
-    CONSTRAINT "admin_user_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -51,7 +41,7 @@ CREATE TABLE "schedules" (
     "id" SERIAL NOT NULL,
     "restaurant_id" INTEGER NOT NULL,
     "shift_name" VARCHAR(50) NOT NULL,
-    "week_day" INTEGER NOT NULL CHECK (week_day >= 0 AND week_day <= 6),
+    "week_day" INTEGER NOT NULL,
     "opening_hour" TIME NOT NULL,
     "closing_hour" TIME NOT NULL,
     "is_active" BOOLEAN NOT NULL DEFAULT true,
@@ -96,22 +86,13 @@ CREATE TABLE "reservation_status" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "super_admin_userId_key" ON "super_admin"("userId");
+CREATE UNIQUE INDEX "users_user_id_key" ON "users"("user_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "super_admin_username_key" ON "super_admin"("username");
+CREATE UNIQUE INDEX "users_username_key" ON "users"("username");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "super_admin_email_key" ON "super_admin"("email");
-
--- CreateIndex
-CREATE UNIQUE INDEX "admin_user_user_id_key" ON "admin_user"("user_id");
-
--- CreateIndex
-CREATE UNIQUE INDEX "admin_user_username_key" ON "admin_user"("username");
-
--- CreateIndex
-CREATE UNIQUE INDEX "admin_user_email_key" ON "admin_user"("email");
+CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "restaurants_restaurant_id_key" ON "restaurants"("restaurant_id");
@@ -126,7 +107,7 @@ CREATE UNIQUE INDEX "reservations_code_key" ON "reservations"("code");
 CREATE UNIQUE INDEX "reservation_status_status_key" ON "reservation_status"("status");
 
 -- AddForeignKey
-ALTER TABLE "restaurants" ADD CONSTRAINT "restaurants_admin_id_fkey" FOREIGN KEY ("admin_id") REFERENCES "admin_user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "restaurants" ADD CONSTRAINT "restaurants_admin_id_fkey" FOREIGN KEY ("admin_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "schedules" ADD CONSTRAINT "schedules_restaurant_id_fkey" FOREIGN KEY ("restaurant_id") REFERENCES "restaurants"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

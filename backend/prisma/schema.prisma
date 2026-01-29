@@ -14,21 +14,12 @@ datasource db {
   provider = "postgresql"
 }
 
-model SuperAdmin {
-  id        Int      @id @default(autoincrement())
-  userId    String   @unique @default(uuid()) @db.Uuid
-  username  String   @unique @db.VarChar(50)
-  email     String   @unique @db.VarChar(50)
-  password  String   @db.VarChar(60)
-  telephone String   @db.VarChar(12)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  active    Boolean  @default(true)
-
-  @@map("super_admin")
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
 }
 
-model AdminUser {
+model User {
   id                Int          @id @default(autoincrement())
   user_id           String       @unique @default(uuid()) @db.Uuid
   username          String       @unique @db.VarChar(50)
@@ -37,12 +28,14 @@ model AdminUser {
   password          String       @db.VarChar(60)
   telephone         String       @db.VarChar(12)
   tokenVerificacion String?      @map("token_verificacion") @db.Uuid
+  refreshToken      String?      @db.VarChar(100)
+  role              UserRole  
   createdAt         DateTime     @default(now()) @map("created_at")
   updatedAt         DateTime     @updatedAt @map("updated_at")
   active            Boolean      @default(true)
   restaurants       Restaurant[]
 
-  @@map("admin_user")
+  @@map("users")
 }
 
 model Restaurant {
@@ -52,7 +45,7 @@ model Restaurant {
   logo            String?    @db.VarChar(256)
   address         String     @db.VarChar(100)
   adminId         Int        @map("admin_id")
-  admin           AdminUser  @relation(fields: [adminId], references: [id])
+  admin           User  @relation(fields: [adminId], references: [id])
   active          Boolean    @default(true)
   maximumCapacity Int        @default(1) @map("maximum_capacity")
   createdAt       DateTime   @default(now()) @map("created_at")
