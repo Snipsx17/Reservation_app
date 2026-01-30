@@ -14,7 +14,7 @@ export class UsersService {
   ) {}
 
   async findOne(username: string): Promise<User | null> {
-    const user = await this.dbService.user.findUniqueOrThrow({
+    const user = await this.dbService.user.findUnique({
       where: { username },
     });
     return user ? user : null;
