@@ -1,5 +1,5 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { PrismaClient } from '../generated/prisma/client'; // ← Nota la ruta
+import { PrismaClient } from '../generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
 
@@ -9,15 +9,12 @@ export class PrismaService
   implements OnModuleInit, OnModuleDestroy
 {
   constructor() {
-    // Crear el pool de conexiones de PostgreSQL
     const pool = new pg.Pool({
       connectionString: process.env.DATABASE_URL,
     });
 
-    // Crear el adaptador
     const adapter = new PrismaPg(pool);
 
-    // Inicializar PrismaClient con el adaptador
     super({ adapter });
   }
 
