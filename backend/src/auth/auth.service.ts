@@ -1,22 +1,19 @@
-import * as bcrypt from 'bcrypt';
-
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/user.service';
-import { ConfigService } from '@nestjs/config';
+import { CryptoHelper } from 'src/common/helpers/crypto.helper';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-    private configService: ConfigService,
   ) {}
 
   async validate(username: string, pass: string) {
     const user = await this.usersService.findOne(username);
 
-    if (user && (await this.comparePasswords(pass, user.password))) {
+    if (user && (await CryptoHelper.comparePasswords(pass, user.password))) {
       const { password, ...result } = user;
       return result;
     }
@@ -31,7 +28,7 @@ export class AuthService {
       throw new UnauthorizedException();
     }
 
-    if (await this.comparePasswords(pass, user.password)) {
+    if (await CryptoHelper.comparePasswords(pass, user.password)) {
       throw new UnauthorizedException();
     }
 
@@ -40,19 +37,5 @@ export class AuthService {
     return {
       access_token: this.jwtService.sign(payload),
     };
-  }
-
-  async hashPassword(password: string): Promise<string> {
-    return await bcrypt.hash(
-      password,
-      this.configService.get<number>('JWT_SALT_ROUNDS'),
-    );
-  }
-
-  async comparePasswords(
-    password: string,
-    hashedPassword: string,
-  ): Promise<boolean> {
-    return await bcrypt.compare(password, hashedPassword);
   }
 }
