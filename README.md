@@ -18,10 +18,11 @@ This system enables restaurants to manage reservations online while providing cu
 
 ### Backend (NestJS)
 - **Framework**: NestJS with TypeScript
-- **Database**: PostgreSQL with TypeORM
-- **Authentication**: JWT + Passport
+- **Database**: PostgreSQL with Prisma ORM
+- **Authentication**: JWT + Passport with refresh tokens
 - **Validation**: class-validator, class-transformer
-- **Email Service**: Resend
+- **Logging**: Winston with daily rotation
+- **Email Service**: Resend (planned)
 - **Development**: Docker Compose for local database
 
 ### Frontend (Planned)
@@ -37,7 +38,7 @@ This system enables restaurants to manage reservations online while providing cu
 - [x] **Project Initialization**
   - NestJS project setup with TypeScript
   - Basic folder structure following NestJS conventions
-  - Dependencies installed (TypeORM, PostgreSQL, Config)
+  - Dependencies installed (Prisma, PostgreSQL, Config)
 
 - [x] **Configuration Management**
   - Environment variables setup with `@nestjs/config`
@@ -46,25 +47,73 @@ This system enables restaurants to manage reservations online while providing cu
   - Clean separation between development and production configs
 
 - [x] **Database Setup**
-  - PostgreSQL integration with TypeORM
+  - PostgreSQL integration with Prisma ORM
   - Docker Compose for local development database
-  - TypeORM configured with async factory pattern
-  - Database connection using ConfigService instead of process.env
+  - Prisma configured with custom client generation
+  - Database connection using PrismaService
+
+- [x] **Authentication System**
+  - JWT authentication with Passport strategies
+  - Refresh token system with database storage
+  - Role-based authorization (SUPER_ADMIN, ADMIN)
+  - Password hashing with bcrypt
+
+- [x] **Logging System**
+  - Winston logger with daily file rotation
+  - Configurable log levels and formats
+  - Separate error and application logs
 
 - [x] **Project Structure**
   ```
   backend/
   ├── src/
-  │   ├── app/              # Main app controller
-  │   ├── config/           # Configuration files
-  │   │   ├── configuration.ts
-  │   │   ├── config.interface.ts
-  │   │   └── database.config.ts
+  │   ├── auth/             # Authentication module
+  │   │   ├── guards/       # Auth guards (Local, JWT)
+  │   │   ├── strategies/   # Passport strategies
+  │   │   └── types.d.ts    # Type definitions
+  │   ├── common/           # Shared utilities
+  │   │   ├── helpers/      # Crypto and UUID helpers
+  │   │   └── logger/       # Winston logger configuration
+  │   ├── config/           # App configuration
+  │   ├── users/            # User management module
+  │   │   └── dto/          # Data transfer objects
+  │   ├── prisma/           # Prisma service
+  │   ├── tasks/            # Background tasks (token cleanup)
+  │   ├── generated/        # Prisma generated client
   │   ├── app.module.ts     # Root module
   │   └── main.ts          # Application entry point
+  ├── prisma/
+  │   └── schema.prisma     # Database schema
   ├── docker-compose.yml    # Local database setup
   └── package.json         # Dependencies and scripts
   ```
+
+#### Database Schema (Current)
+- [x] **User Model**
+  - Unified user table with role-based access (SUPER_ADMIN/ADMIN)
+  - Email verification system
+  - Secure password storage with bcrypt
+  - Refresh token management
+
+- [x] **Restaurant Model**  
+  - Restaurant information and configuration
+  - Admin assignment (one-to-many relationship)
+  - Capacity and operational settings
+
+- [x] **Schedule Model**
+  - Flexible scheduling system per restaurant
+  - Multiple shifts per day support
+  - Configurable reservation blocks and capacity
+
+- [x] **Reservation System Models**
+  - Reservation with status tracking
+  - Customer information storage
+  - Notes and dietary restrictions support
+
+- [x] **Refresh Token System**
+  - Secure token storage with device tracking
+  - IP and user agent logging for security
+  - Automatic cleanup of expired tokens
 
 ## 🚀 Getting Started
 
@@ -73,6 +122,7 @@ This system enables restaurants to manage reservations online while providing cu
 - PostgreSQL
 - Yarn package manager
 - Docker (optional, for local database)
+- Prisma CLI (installed with dev dependencies)
 
 ### Backend Development
 
@@ -94,7 +144,16 @@ This system enables restaurants to manage reservations online while providing cu
    docker-compose up -d
    ```
 
-4. **Run the application**
+4. **Set up the database**
+   ```bash
+   # Generate Prisma client
+   npx prisma generate
+   
+   # Run database migrations (when available)
+   npx prisma migrate deploy
+   ```
+
+5. **Run the application**
    ```bash
    # Development mode
    yarn start:dev
@@ -119,6 +178,11 @@ yarn start:prod         # Run production build
 yarn lint               # Run ESLint
 yarn format             # Format code with Prettier
 
+# Database management
+npx prisma generate     # Generate Prisma client
+npx prisma migrate dev  # Create and apply migration
+npx prisma studio       # Database browser UI
+
 # Testing (when implemented)
 yarn test               # Run unit tests
 yarn test:e2e           # Run e2e tests
@@ -129,16 +193,28 @@ yarn test:cov           # Test coverage
 
 ### Environment Variables
 ```bash
-# Database
+# Database (Prisma uses DATABASE_URL)
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/restaurant_reservation"
+
+# Alternative individual variables (for configuration)
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
 POSTGRES_DB=restaurant_reservation
 
+# JWT Configuration
+JWT_SECRET=your-secret-key-here
+JWT_EXPIRES_IN=1h
+JWT_REFRESH_SECRET=your-refresh-secret-here
+JWT_REFRESH_EXPIRES_IN=7d
+
 # Application
 PORT=3000
 NODE_ENV=development
+
+# Email Service (when implemented)
+RESEND_API_KEY=your-resend-api-key
 ```
 
 ## 🤝 Contributing
@@ -154,7 +230,7 @@ Following conventional commits:
 ## 📚 Documentation References
 
 - [NestJS Documentation](https://docs.nestjs.com)
-- [TypeORM Documentation](https://typeorm.io)
+- [Prisma Documentation](https://www.prisma.io/docs)
 - [Astro Documentation](https://docs.astro.build)
 
 ---
