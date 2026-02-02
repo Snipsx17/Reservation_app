@@ -36,7 +36,7 @@ export class UsersService {
           this.configService.get<number>('JWT_SALT_ROUNDS'),
         ),
         verifiedEmail: false,
-        tokenVerificacion: uuidGenerator.generate(),
+        tokenVerification: uuidGenerator.generate(),
         refreshToken: uuidGenerator.generate(),
         active: true,
         role,

@@ -27,7 +27,7 @@ model User {
   verifiedEmail     Boolean         @default(false) @map("verified_email")
   password          String          @db.VarChar(60)
   telephone         String          @db.VarChar(12)
-  tokenVerificacion String?         @map("token_verificacion") @db.Uuid
+  tokenVerification String?         @map("token_verification") @db.Uuid
   refreshToken      String?         @db.VarChar(100)
   role              UserRole
   createdAt         DateTime        @default(now()) @map("created_at")
