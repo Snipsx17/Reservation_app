@@ -1,10 +1,15 @@
-import { ConflictException, Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
+import { PrismaService } from '@/prisma/prisma.service';
 import { User, UserRole } from '../generated/prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
-import uuidGenerator from 'src/common/helpers/uuid-generator';
-import { CryptoHelper } from 'src/common/helpers/crypto.helper';
+import uuidGenerator from '@/common/helpers/uuid-generator';
+import { CryptoHelper } from '@/common/helpers/crypto.helper';
 import { ConfigService } from '@nestjs/config';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 
 @Injectable()
 export class UsersService {
@@ -14,10 +19,16 @@ export class UsersService {
   ) {}
 
   async findOne(username: string): Promise<User | null> {
-    const user = await this.dbService.user.findUnique({
-      where: { username },
-    });
-    return user ? user : null;
+    try {
+      const user = await this.dbService.user.findUnique({
+        where: { username },
+      });
+      return user ? user : null;
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError)
+        throw new InternalServerErrorException('Error during login');
+      throw new InternalServerErrorException();
+    }
   }
 
   async create(
@@ -46,7 +57,10 @@ export class UsersService {
         data: newUser,
       });
     } catch (error) {
-      throw error;
+      if (error instanceof PrismaClientKnownRequestError)
+        throw new InternalServerErrorException('Error during login');
+
+      throw new InternalServerErrorException();
     }
   }
 }
