@@ -21,7 +21,7 @@ enum UserRole {
 
 model User {
   id                Int             @id @default(autoincrement())
-  user_id           String          @unique @default(uuid()) @db.Uuid
+  userId           String           @unique @default(uuid()) @db.Uuid @map("user_id")
   username          String          @unique @db.VarChar(50)
   email             String          @unique @db.VarChar(50)
   verifiedEmail     Boolean         @default(false) @map("verified_email")
@@ -112,9 +112,9 @@ model RefreshTokens {
   id         Int      @id @default(autoincrement())
   userId     Int      @map("user_id")
   user       User     @relation(fields: [userId], references: [id])
-  token      String   @unique() @db.VarChar(100)
-  deviceInfo String   @map("device_info") @db.VarChar(50)
-  userAgent  String   @map("user_agent") @db.VarChar(100)
+  token      String   @unique() @db.VarChar(256)
+  deviceInfo String   @map("device_info") @db.VarChar(256)
+  userAgent  String   @map("user_agent") @db.VarChar(256)
   ipAddress  String   @map("ip_address") @db.VarChar(50)
   expiresAt  DateTime @map("expired_at")
   createdAt  DateTime @default(now()) @map("created_at")
