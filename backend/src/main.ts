@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -16,11 +16,13 @@ async function bootstrap() {
     }),
   );
 
+  const localLogger = new Logger('NestApplication');
+
   const PORT = app.get(ConfigService).get('PORT');
   const ENV = app.get(ConfigService).get('NODE_ENV');
   await app.listen(PORT ?? 4000);
 
-  if (ENV === 'development') console.log(`Server started at port: ${PORT}`);
+  if (ENV === 'development') localLogger.log(`Server started at port: ${PORT}`);
 }
 
 bootstrap();
