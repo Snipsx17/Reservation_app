@@ -1,3 +1,4 @@
+import { User } from '@/generated/prisma/client';
 import { UserRole } from '@/generated/prisma/enums';
 
 export interface IValidateResponse {
@@ -33,10 +34,27 @@ export interface IUserActiveToken {
 }
 
 export interface ITokenData {
-  userId: any;
+  userId: number;
   token: string;
   deviceInfo: string;
   userAgent: string;
   ipAddress: string;
   expiresAt: Date;
+}
+
+export interface ILoginData {
+  username: string;
+  id: number;
+  userAgent: string;
+  ip: string;
+  deviceFingerprint: string;
+}
+
+export interface IRequestWithUser extends Request {
+  user: User;
+}
+
+export interface ITokenStrategy {
+  type: string;
+  existingToken?: IUserActiveToken;
 }
