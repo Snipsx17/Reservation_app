@@ -4,6 +4,7 @@ import { Strategy } from 'passport-local';
 import { AuthService } from '../auth.service';
 import { ErrorHandler } from '@/common/helpers/error-handler.helper';
 import { LoggerService } from '@/common/logger/logger.service';
+import { UserResponseDto } from '../dto/user-response.dto';
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {
@@ -14,7 +15,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     super({ usernameField: 'username' });
   }
 
-  async validate(username: string, password: string): Promise<any> {
+  async validate(username: string, password: string): Promise<UserResponseDto> {
     try {
       const user = await this.authService.validate(username, password);
 

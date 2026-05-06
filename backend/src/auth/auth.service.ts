@@ -19,8 +19,9 @@ import {
   ITokenData,
   ITokenStrategy,
   IUserActiveToken,
-  IValidateResponse,
 } from './interfaces/auth.interface';
+import { plainToClass } from 'class-transformer';
+import { UserResponseDto } from './dto/user-response.dto';
 
 @Injectable()
 export class AuthService {
@@ -35,7 +36,7 @@ export class AuthService {
   async validate(
     username: string,
     passwordFromRequest: string,
-  ): Promise<IValidateResponse> {
+  ): Promise<UserResponseDto> {
     try {
       const user = await this.usersService.findOne(username);
 
@@ -45,13 +46,12 @@ export class AuthService {
         passwordFromRequest,
         user.password,
       );
-      this.logger.error(
-        `Error validating user: ${username}`,
-        'AuthService.validate',
-      );
+
       if (!isValidPassword) return null;
 
-      const { password, ...result } = user;
+      const result = plainToClass(UserResponseDto, user, {
+        excludePrefixes: ['password', 'tokenVerification'],
+      });
 
       return result;
     } catch (error) {
