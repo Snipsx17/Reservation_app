@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import { LoggerService } from '../logger/logger.service';
@@ -21,7 +22,8 @@ export class ErrorHandler {
     // Re-throw known exceptions
     if (
       error instanceof BadRequestException ||
-      error instanceof InternalServerErrorException
+      error instanceof InternalServerErrorException ||
+      error instanceof UnauthorizedException
     ) {
       throw error;
     }
