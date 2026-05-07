@@ -2,6 +2,7 @@ import {
   Injectable,
   InternalServerErrorException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '@/users/user.service';
@@ -41,7 +42,10 @@ export class AuthService {
     try {
       const user = await this.usersService.findOne(username);
 
-      if (!user) return null;
+      if (!user || !user.active) return null;
+
+      if (user.verifiedEmail)
+        throw new ForbiddenException('Email not validated');
 
       const isValidPassword = await CryptoHelper.comparePasswords(
         passwordFromRequest,
