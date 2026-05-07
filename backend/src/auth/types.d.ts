@@ -1,4 +1,4 @@
 type JwtPayload = {
-  sub: string;
+  sub: number;
   username: string;
 };
