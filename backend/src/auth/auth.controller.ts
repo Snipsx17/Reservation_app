@@ -1,7 +1,7 @@
 import {
   Body,
   Controller,
-  Get,
+  HttpCode,
   Ip,
   Post,
   Request,
@@ -11,6 +11,7 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 import { CreateUserDto } from '@/users/dto/create-user.dto';
 import { UsersService } from '@/users/user.service';
 import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -25,10 +26,11 @@ export class AuthController {
     return await this.authService.login(req, ip);
   }
 
-  @Get('/logout')
-  async logout(@Request() req) {
-    console.log(req);
-    return req.logout();
+  @UseGuards(JwtAuthGuard)
+  @Post('/logout')
+  @HttpCode(204)
+  async logout(@Request() req, @Ip() ip: string) {
+    return await this.authService.logout(req, ip);
   }
 
   @Post('/signup')

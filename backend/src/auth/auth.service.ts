@@ -13,6 +13,7 @@ import { LoggerService } from '@/common/logger/logger.service';
 import { MAX_ACTIVE_TOKENS } from '@/common/constants';
 import { ErrorHandler } from '@/common/helpers/error-handler.helper';
 import {
+  IJwtTokenPayload,
   ILoginData,
   ILoginResponse,
   IRequestWithUser,
@@ -85,6 +86,30 @@ export class AuthService {
     }
   }
 
+  async logout(req: IRequestWithUser, ip: string) {
+    const { id: userId, username } = req.user;
+    const userAgent = req.headers['user-agent'] || 'unknown';
+    const deviceFingerprint = DeviceFingerprintHelper.create(userAgent, ip);
+
+    try {
+      await this.prismaService.refreshTokens.deleteMany({
+        where: {
+          userId,
+          deviceInfo: deviceFingerprint,
+        },
+      });
+
+      this.logger.log(`User ${username} was logout`, 'AuthService.logout');
+    } catch (error) {
+      ErrorHandler.handle(
+        error,
+        'AuthService.logout',
+        `Error when logout User: ${username || 'unknown'}`,
+        this.logger,
+      );
+    }
+  }
+
   private extractLoginData(req: IRequestWithUser, ip: string): ILoginData {
     const { username, id } = req.user;
     const userAgent = req.headers['user-agent'] || 'unknown';
@@ -125,6 +150,10 @@ export class AuthService {
       ipAddress: ip,
       expiresAt: new Date(Date.now() + refreshTokenExpiration),
     };
+  }
+
+  private decodeJwtToken(authToken: string): IJwtTokenPayload {
+    return this.jwtService.decode(authToken);
   }
 
   private logLoginAttempt(username: string, ip: string) {

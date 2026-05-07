@@ -8,6 +8,8 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PrismaModule } from '@/prisma/prisma.module';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({
   imports: [
@@ -25,7 +27,13 @@ import { PrismaModule } from '@/prisma/prisma.module';
       inject: [ConfigService],
     }),
   ],
-  providers: [AuthService, LocalStrategy, LocalAuthGuard],
+  providers: [
+    AuthService,
+    LocalStrategy,
+    LocalAuthGuard,
+    JwtStrategy,
+    JwtAuthGuard,
+  ],
   controllers: [AuthController],
 })
 export class AuthModule {}
