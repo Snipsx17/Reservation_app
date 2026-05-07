@@ -1,5 +1,6 @@
 import { User } from '@/generated/prisma/client';
 import { UserRole } from '@/generated/prisma/enums';
+import { Request } from 'express';
 
 export interface IValidateResponse {
   id: number;
@@ -48,6 +49,18 @@ export interface ILoginData {
   userAgent: string;
   ip: string;
   deviceFingerprint: string;
+}
+
+export interface ILogoutData {
+  userAgent: string;
+  authToken: string;
+}
+
+export interface IJwtTokenPayload {
+  username: string;
+  sub: number;
+  iat: number;
+  exp: number;
 }
 
 export interface IRequestWithUser extends Request {
