@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
@@ -29,7 +29,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const deviceFingerprint = DeviceFingerprintHelper.create(userAgent, ip);
 
     try {
-      await this.prismaService.refreshTokens.deleteMany({
+      const activeToken = await this.prismaService.refreshTokens.findFirst({
         where: {
           userId: payload.sub,
           token: token,
@@ -41,12 +41,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         },
       });
 
+      if (!activeToken) {
+        throw new UnauthorizedException();
+      }
+
       return { id: payload.sub, username: payload.username };
     } catch (error) {
       ErrorHandler.handle(
         error,
-        'AuthService.logout',
-        `Error validating token ${token}`,
+        'JwtStrategy.validate',
+        `Error validating token or not valid ${token}`,
         this.logger,
       );
     }
