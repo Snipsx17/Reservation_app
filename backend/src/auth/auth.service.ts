@@ -24,6 +24,8 @@ import {
 } from './interfaces/auth.interface';
 import { plainToClass } from 'class-transformer';
 import { UserResponseDto } from './dto/user-response.dto';
+import { CreateUserDto } from '@/users/dto/create-user.dto';
+import { UserRole } from '@/generated/prisma/enums';
 
 @Injectable()
 export class AuthService {
@@ -114,6 +116,13 @@ export class AuthService {
     }
   }
 
+  async signup(user: CreateUserDto, role: UserRole = UserRole.ADMIN) {
+    const newUser = await this.usersService.create(user, role);
+    return plainToClass(UserResponseDto, newUser, {
+      excludePrefixes: ['password', 'tokenVerification'],
+    });
+  }
+
   private extractLoginData(req: IRequestWithUser, ip: string): ILoginData {
     const { username, id } = req.user;
     const userAgent = req.headers['user-agent'] || 'unknown';
@@ -169,6 +178,16 @@ export class AuthService {
 
   private createNewAccessToken(username: string, sub: number): string {
     return this.jwtService.sign({ username, sub });
+  }
+
+  private createNewRefreshToken(id: string) {
+    this.jwtService.sign(
+      { userId: id, type: 'refresh' },
+      {
+        secret: this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
+        expiresIn: this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION'),
+      },
+    );
   }
 
   private async findUserActiveTokens(

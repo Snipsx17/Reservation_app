@@ -7,20 +7,18 @@ import { CryptoHelper } from '@/common/helpers/crypto.helper';
 import { ConfigService } from '@nestjs/config';
 import { ErrorHandler } from '@/common/helpers/error-handler.helper';
 import { LoggerService } from '@/common/logger/logger.service';
-import { UserResponseDto } from '@/auth/dto/user-response.dto';
-import { plainToClass } from 'class-transformer';
 
 @Injectable()
 export class UsersService {
   constructor(
-    private readonly dbService: PrismaService,
+    private readonly prismaService: PrismaService,
     private readonly configService: ConfigService,
     private readonly logger: LoggerService,
   ) {}
 
   async findOne(username: string): Promise<User | null> {
     try {
-      const user = await this.dbService.user.findUnique({
+      const user = await this.prismaService.user.findUnique({
         where: { username },
       });
       return user ? user : null;
@@ -37,34 +35,24 @@ export class UsersService {
   async create(
     user: CreateUserDto,
     role: UserRole = UserRole.ADMIN,
-  ): Promise<UserResponseDto> {
+  ): Promise<User> {
     try {
       const userExist = await this.findOne(user.username);
 
       if (userExist) throw new ConflictException('User already exists');
 
-      const newUser = {
-        ...user,
-        password: await CryptoHelper.hashPassword(
-          user.password,
-          this.configService.get<number>('JWT_SALT_ROUNDS'),
-        ),
-        verifiedEmail: false,
-        tokenVerification: uuidGenerator.generate(),
-        refreshToken: uuidGenerator.generate(),
-        active: true,
-        role,
-      };
+      const newUser = await this.prepareUserData(user, role);
 
-      const newDbUser = await this.dbService.user.create({
+      const newDbUser = await this.prismaService.user.create({
         data: newUser,
       });
 
-      if (!user) return null;
+      this.logger.log(
+        `New user created. username: ${newDbUser.username} - userId: ${newDbUser.userId}`,
+        'userService.create',
+      );
 
-      return plainToClass(UserResponseDto, newDbUser, {
-        excludeExtraneousValues: true,
-      });
+      return newDbUser;
     } catch (error) {
       ErrorHandler.handle(
         error,
@@ -73,5 +61,22 @@ export class UsersService {
         this.logger,
       );
     }
+  }
+
+  private async prepareUserData(
+    user: CreateUserDto,
+    role: UserRole,
+  ): Promise<CreateUserDto & { userId: string }> {
+    return {
+      ...user,
+      userId: uuidGenerator.generate(),
+      password: await CryptoHelper.hashPassword(
+        user.password,
+        this.configService.get<number>('JWT_SALT_ROUNDS'),
+      ),
+      verifiedEmail: false,
+      tokenVerification: uuidGenerator.generate(),
+      role,
+    };
   }
 }
