@@ -48,5 +48,5 @@ export class CreateUserDto {
 
   @IsOptional()
   @IsString()
-  tokenVerificacion?: string;
+  tokenVerification?: string;
 }
