@@ -10,6 +10,7 @@ export interface env_schema {
   DATABASE_URL: string;
   JWT_ACCESS_TOKEN_SECRET: string;
   JWT_ACCESS_TOKEN_EXPIRATION: number;
+  JWT_REFRESH_TOKEN_SECRET: string;
   JWT_REFRESH_TOKEN_EXPIRATION: number;
   JWT_SALT_ROUNDS: number;
 }
