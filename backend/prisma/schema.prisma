@@ -28,7 +28,7 @@ model User {
   password          String          @db.VarChar(60)
   telephone         String          @db.VarChar(12)
   tokenVerification String?         @map("token_verification") @db.Uuid
-  refreshToken      String?         @db.VarChar(100)
+  refreshToken      String?         @db.VarChar(512)
   role              UserRole
   createdAt         DateTime        @default(now()) @map("created_at")
   updatedAt         DateTime        @updatedAt @map("updated_at")

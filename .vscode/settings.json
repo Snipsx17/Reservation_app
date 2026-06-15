@@ -1,0 +1,5 @@
+{
+    "editor.suggest.showIcons": true,
+    "workbench.iconTheme": "material-icon-theme",
+    "material-icon-theme.activeIconPack": "nest"
+}
