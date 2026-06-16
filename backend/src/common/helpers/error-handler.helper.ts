@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -25,7 +26,8 @@ export class ErrorHandler {
       error instanceof BadRequestException ||
       error instanceof InternalServerErrorException ||
       error instanceof UnauthorizedException ||
-      error instanceof ConflictException
+      error instanceof ConflictException ||
+      error instanceof ForbiddenException
     ) {
       throw error;
     }

@@ -46,7 +46,7 @@ export class AuthService {
 
       if (!user || !user.active) return null;
 
-      if (user.verifiedEmail)
+      if (!user.verifiedEmail)
         throw new ForbiddenException('Email not validated');
 
       const isValidPassword = await CryptoHelper.comparePasswords(
@@ -216,6 +216,7 @@ export class AuthService {
     tokenData: ITokenData,
     loginData: ILoginData,
   ) {
+    // TODO add try/catch
     const strategy = this.determineTokenStrategy(
       activeTokens,
       tokenData.deviceInfo,
