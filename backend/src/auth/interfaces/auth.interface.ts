@@ -18,7 +18,8 @@ export interface IValidateResponse {
 }
 
 export interface ILoginResponse {
-  access_token: string;
+  accessToken: string;
+  refreshToken: string;
 }
 
 export interface IUserActiveToken {

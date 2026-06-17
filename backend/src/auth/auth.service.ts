@@ -74,14 +74,26 @@ export class AuthService {
   async login(req: IRequestWithUser, ip: string): Promise<ILoginResponse> {
     try {
       const loginData = this.extractLoginData(req, ip);
-      const tokenPayload = this.prepareTokenPayload(loginData);
+      const refreshTokenPayload = this.prepareRefreshTokenPayload(loginData);
 
       // get all active tokens (ascending ordered)
-      const activeTokens = await this.findUserActiveTokens(loginData.id);
+      const activeRefreshTokens = await this.findUserActiveTokens(loginData.id);
 
-      await this.handleTokenStrategy(activeTokens, tokenPayload, loginData);
+      await this.handleTokenStrategy(
+        activeRefreshTokens,
+        refreshTokenPayload,
+        loginData,
+      );
 
-      return { access_token: tokenPayload.token };
+      const accessToken = this.createNewAccessToken(
+        loginData.username,
+        loginData.id,
+      );
+
+      return {
+        accessToken: accessToken,
+        refreshToken: refreshTokenPayload.token,
+      };
     } catch (error) {
       ErrorHandler.handle(
         error,
@@ -142,7 +154,7 @@ export class AuthService {
     };
   }
 
-  private prepareTokenPayload(loginData: ILoginData): ITokenData {
+  private prepareRefreshTokenPayload(loginData: ILoginData): ITokenData {
     const { id, username, deviceFingerprint, ip, userAgent } = loginData;
 
     const refreshTokenExpiration = this.configService.get<number>(
@@ -157,11 +169,11 @@ export class AuthService {
 
     return {
       userId: id,
-      token: this.createNewAccessToken(username, id),
+      token: this.createNewRefreshToken(username, id),
       deviceInfo: deviceFingerprint,
       userAgent,
       ipAddress: ip,
-      expiresAt: new Date(Date.now() + refreshTokenExpiration),
+      expiresAt: new Date(Date.now() + refreshTokenExpiration * 1000),
     };
   }
 
@@ -177,12 +189,12 @@ export class AuthService {
   }
 
   private createNewAccessToken(username: string, sub: number): string {
-    return this.jwtService.sign({ username, sub });
+    return this.jwtService.sign({ sub, username, type: 'access' });
   }
 
-  private createNewRefreshToken(id: string) {
-    this.jwtService.sign(
-      { userId: id, type: 'refresh' },
+  private createNewRefreshToken(username: string, sub: number) {
+    return this.jwtService.sign(
+      { userId: sub, username, type: 'refresh' },
       {
         secret: this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
         expiresIn: this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION'),
@@ -216,7 +228,6 @@ export class AuthService {
     tokenData: ITokenData,
     loginData: ILoginData,
   ) {
-    // TODO add try/catch
     const strategy = this.determineTokenStrategy(
       activeTokens,
       tokenData.deviceInfo,
@@ -269,7 +280,7 @@ export class AuthService {
   }
 
   private async createFirstToken(tokenData: ITokenData, username: string) {
-    await this.createRefreshToken(tokenData);
+    await this.saveRefreshToken(tokenData);
     this.logger.log(`First token created for user ${username}`, 'AuthService');
   }
 
@@ -283,7 +294,7 @@ export class AuthService {
   }
 
   private async createNewToken(tokenData: ITokenData, username: string) {
-    await this.createRefreshToken(tokenData);
+    await this.saveRefreshToken(tokenData);
     this.logger.log(`New token created - User: ${username}`, 'AuthService');
   }
 
@@ -299,7 +310,7 @@ export class AuthService {
     );
   }
 
-  private async createRefreshToken(tokenData: ITokenData): Promise<void> {
+  private async saveRefreshToken(tokenData: ITokenData): Promise<void> {
     try {
       await this.prismaService.refreshTokens.create({
         data: tokenData,
@@ -307,7 +318,7 @@ export class AuthService {
     } catch (error) {
       ErrorHandler.handle(
         error,
-        'AuthService.login',
+        'AuthService.saveRefreshToken',
         `Error creating refresh token to user ID: ${tokenData.userId || 'unknown'}`,
         this.logger,
       );
